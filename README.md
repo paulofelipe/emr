@@ -1,129 +1,135 @@
----
-output:
-  html_document:
-    keep_md: yes
----
-
-
 
 ## emr - Economic Models in R
 
-Esta pacote tem o objetivo de possibilitar a definição e a execução de simulações de modelos de equilíbrio parcial e geral. A ideia é ser algo similar ao GAMS e GEMPACK.
+Esta pacote tem o objetivo de possibilitar a definição e a execução de
+simulações de modelos de equilíbrio parcial e geral. A ideia é ser algo
+similar ao GAMS e GEMPACK.
 
-A definição dos modelos segue a lógica discutida em [A simple structure for CGE models](https://jgea.org/resources/download/6539.pdf) by Xiao-guang Zhang. 
+A definição dos modelos segue a lógica discutida em [A simple structure
+for CGE models](https://jgea.org/resources/download/6539.pdf) by
+Xiao-guang Zhang.
 
-![Structure of variables and equations (Zhang, 2013)](structure_var_eq.png)
+![Structure of variables and equations (Zhang,
+2013)](structure_var_eq.png)
 
-Nessa abordagem, as variáveis exógenas e endógenas serão classificadas em dois tipos: definidas ou não-definidas. As variáveis exógenas, por definição, são definidas. As endógenas pode ser dos dois tipos. As variáveis definidas são aquelas que podem ser construídas a partir dos valores das demais variáveis, das chamadas equação de definição. Já as não-definidas são aquelas que os valores serão definidos a partir de condições de equilíbrio de mercado (MCCs). 
+Nessa abordagem, as variáveis exógenas e endógenas serão classificadas
+em dois tipos: definidas ou não-definidas. As variáveis exógenas, por
+definição, são definidas. As endógenas pode ser dos dois tipos. As
+variáveis definidas são aquelas que podem ser construídas a partir dos
+valores das demais variáveis, das chamadas equação de definição. Já as
+não-definidas são aquelas que os valores serão definidos a partir de
+condições de equilíbrio de mercado (MCCs).
 
 ## Primeiro Exemplo - Modelo de Armington
 
-O modelo de armington consiste no problema do consumidor que deve alocar sua renda em produtos de $N$ diferentes origens, que chamaremos de variedades. O consumidor tem uma função de utilidade do tipo CES com elasticidade de substituição. Dessa forma, o problema do consumidor é o seguinte:
+O modelo de armington consiste no problema do consumidor que deve alocar
+sua renda em produtos de \(N\) diferentes origens, que chamaremos de
+variedades. O consumidor tem uma função de utilidade do tipo CES com
+elasticidade de substituição. Dessa forma, o problema do consumidor é o
+seguinte:
 
-$$ \max_{{c_1,...,c_n}}U = \left[\sum_{i=1}^N\alpha_i^\frac{1-\sigma}{\sigma} c_i^\frac{\sigma-1}{\sigma}\right]^\frac{\sigma}{\sigma-1}$$
+\[ \max_{{c_1,...,c_n}}U = \left[\sum_{i=1}^N\alpha_i^\frac{1-\sigma}{\sigma} c_i^\frac{\sigma-1}{\sigma}\right]^\frac{\sigma}{\sigma-1}\]
 
-$$ s.a. \sum_{i=1}^N p_ic_i = R,$$
+\[ s.a. \sum_{i=1}^N p_ic_i = R,\]
 
-onde $p_i = p_i^s(1+t_i)$ é o preço pago ao produtor adicionado de uma tarifa ad valorem $t_i$. 
+onde \(p_i = p_i^s(1+t_i)\) é o preço pago ao produtor adicionado de uma
+tarifa ad valorem \(t_i\).
 
-Resolvendo o problema do consumidor, chega-se a seguinte equação de demanda para a variedade $i$:
+Resolvendo o problema do consumidor, chega-se a seguinte equação de
+demanda para a variedade \(i\):
 
-$$c_i = \left(\frac{\alpha_i p_i}{P}\right)^{-\sigma} Q$$
-onde $Q=R/P$ e $P$ é o índice de preços da CES que tem a seguinte formula:
+\[c_i = \left(\frac{\alpha_i p_i}{P}\right)^{-\sigma} Q\] onde \(Q=R/P\)
+e \(P\) é o índice de preços da CES que tem a seguinte
+formula:
 
-$$ P = \left[\sum_i (\alpha_i p_i)^{1-\sigma}\right]^\frac{1}{1-\sigma}$$
+\[ P = \left[\sum_i (\alpha_i p_i)^{1-\sigma}\right]^\frac{1}{1-\sigma}\]
 
-Adicionalmente, pode-se definir uma função de demanda total do tipo elasticidade constante:
+Adicionalmente, pode-se definir uma função de demanda total do tipo
+elasticidade constante:
 
-$$Q = k^d P^{\eta}$$
+\[Q = k^d P^{\eta}\]
 
-onde $\eta < 0$ é elasticidade-preço da demanda.
+onde \(\eta < 0\) é elasticidade-preço da demanda.
 
-Por fim, a oferta de cada variedade também é dada por uma função do tipo elasticidade constante:
+Por fim, a oferta de cada variedade também é dada por uma função do tipo
+elasticidade constante:
 
-$$ q_i = k^s \left(\frac{p_i}{1+t_i}\right)^{\epsilon_i}$$
+\[ q_i = k^s \left(\frac{p_i}{1+t_i}\right)^{\epsilon_i}\]
 
-Dessa forma, o sistema é formado por essas equações para as variáveis $Q$ (definida), $q_i$ (definida), $c_i$ (definida), $P$ (definida) e $p_i$ (não-definida):
+Dessa forma, o sistema é formado por essas equações para as variáveis
+\(Q\) (definida), \(q_i\) (definida), \(c_i\) (definida), \(P\)
+(definida) e \(p_i\) (não-definida):
 
-* Demanda Total:
+  - Demanda Total:
 
-$$Q = k^d P^{\eta}$$
+\[Q = k^d P^{\eta}\]
 
-* Oferta da variedade $i$:
+  - Oferta da variedade \(i\):
 
-$$ q_i = k^s \left(\frac{p_i}{1+t_i}\right)^{\epsilon_i}$$
+\[ q_i = k^s \left(\frac{p_i}{1+t_i}\right)^{\epsilon_i}\]
 
-* Demanda pela variedade $i$:
+  - Demanda pela variedade \(i\):
 
-$$c_i = \left(\frac{\alpha_i p_i}{P}\right)^{-\sigma} Q$$
+\[c_i = \left(\frac{\alpha_i p_i}{P}\right)^{-\sigma} Q\]
 
-* Índice de preços:
+  - Índice de
+preços:
 
-$$ P = \left[\sum_i (\alpha_i p_i)^{1-\sigma}\right]^\frac{1}{1-\sigma}$$
+\[ P = \left[\sum_i (\alpha_i p_i)^{1-\sigma}\right]^\frac{1}{1-\sigma}\]
 
-* Condição de equilíbrio (para a variável $p_i$):
+  - Condição de equilíbrio (para a variável \(p_i\)):
 
-$$c_i = q_i$$
+\[c_i = q_i\]
 
-Agora, vamos definir o modelo no R. Para isso, vamos escrever as equações em variações exatas. Isto é, a variação de uma variável $x$ entre o equilíbrio base e o novo equilíbrio ($x'$) é denotada por $\hat{x} = \frac{x'}{x}$. 
+Agora, vamos definir o modelo no R. Para isso, vamos escrever as
+equações em variações exatas. Isto é, a variação de uma variável \(x\)
+entre o equilíbrio base e o novo equilíbrio (\(x'\)) é denotada por
+\(\hat{x} = \frac{x'}{x}\).
 
-Para construir o modelo, precisaremos definir os conjuntos de índices (por exemplo, o nome das regiões fornecedoras $i$), os parâmetros (acomoda parâmetros e variáveis exógenas), as variáveis e as equações.
+Para construir o modelo, precisaremos definir os conjuntos de índices
+(por exemplo, o nome das regiões fornecedoras \(i\)), os parâmetros
+(acomoda parâmetros e variáveis exógenas), as variáveis e as equações.
 
-
-```r
+``` r
 library(emr) #load the package!
 library(tidyverse)
 ```
 
-```
-## -- Attaching packages --------------------------------------------- tidyverse 1.2.1 --
-```
+    ## -- Attaching packages --------------------------------------------- tidyverse 1.2.1 --
 
-```
-## v ggplot2 3.0.0     v purrr   0.3.2
-## v tibble  1.4.2     v dplyr   0.7.6
-## v tidyr   0.8.1     v stringr 1.4.0
-## v readr   1.2.1     v forcats 0.3.0
-```
+    ## v ggplot2 3.0.0     v purrr   0.3.2
+    ## v tibble  1.4.2     v dplyr   0.7.6
+    ## v tidyr   0.8.1     v stringr 1.4.0
+    ## v readr   1.2.1     v forcats 0.3.0
 
-```
-## Warning: package 'purrr' was built under R version 3.5.3
-```
+    ## Warning: package 'purrr' was built under R version 3.5.3
 
-```
-## Warning: package 'stringr' was built under R version 3.5.3
-```
+    ## Warning: package 'stringr' was built under R version 3.5.3
 
-```
-## -- Conflicts ------------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
+    ## -- Conflicts ------------------------------------------------ tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
 
-```r
+``` r
 params <- list()
 variables <- list()
 equations <- list()
 sets <- list()
 ```
 
-
 ### Sets
 
 Começando pelo conjunto de índices:
 
-
-```r
+``` r
 sets[['REG']] <-c("reg1", "reg2", "reg3")
 ```
-
 
 ### Parâmetros
 
 Agora iremos definir os parâmetros:
 
-
-```r
+``` r
 params[["sigma"]] <- create_param(
   value = 4,
   indexes = list(sigma = "sigma"),
@@ -158,60 +164,59 @@ params[["v0"]] <- create_param(
 params
 ```
 
-```
-## $sigma
-## $sigma$value
-## sigma 
-##     4 
-## 
-## $sigma$desc
-## [1] "elasticity of substitution"
-## 
-## 
-## $eta
-## $eta$value
-## eta 
-##  -1 
-## 
-## $eta$desc
-## [1] "price elasticity of total demand"
-## 
-## 
-## $epsilon
-## $epsilon$value
-## reg1 reg2 reg3 
-##    1   10   10 
-## 
-## $epsilon$desc
-## [1] "price elasticity of individuals supplies"
-## 
-## 
-## $tau
-## $tau$value
-## reg1 reg2 reg3 
-##    1    1    1 
-## 
-## $tau$desc
-## [1] "change in the tarrif power (1 + t)"
-## 
-## 
-## $v0
-## $v0$value
-## reg1 reg2 reg3 
-##   60   30   10 
-## 
-## $v0$desc
-## [1] "initial values"
-```
+    ## $sigma
+    ## $sigma$value
+    ## sigma 
+    ##     4 
+    ## 
+    ## $sigma$desc
+    ## [1] "elasticity of substitution"
+    ## 
+    ## 
+    ## $eta
+    ## $eta$value
+    ## eta 
+    ##  -1 
+    ## 
+    ## $eta$desc
+    ## [1] "price elasticity of total demand"
+    ## 
+    ## 
+    ## $epsilon
+    ## $epsilon$value
+    ## reg1 reg2 reg3 
+    ##    1   10   10 
+    ## 
+    ## $epsilon$desc
+    ## [1] "price elasticity of individuals supplies"
+    ## 
+    ## 
+    ## $tau
+    ## $tau$value
+    ## reg1 reg2 reg3 
+    ##    1    1    1 
+    ## 
+    ## $tau$desc
+    ## [1] "change in the tarrif power (1 + t)"
+    ## 
+    ## 
+    ## $v0
+    ## $v0$value
+    ## reg1 reg2 reg3 
+    ##   60   30   10 
+    ## 
+    ## $v0$desc
+    ## [1] "initial values"
 
 ### Índice de Preços
 
-$$ \hat{P} = \left[\sum_i \pi_ip_i^{1-\sigma}\right]^\frac{1}{1-\sigma},$$
+\[ \hat{P} = \left[\sum_i \pi_ip_i^{1-\sigma}\right]^\frac{1}{1-\sigma},\]
 
-onde $\pi_i = \frac{v^0_i}{\sum_i v^0_i}$ é o share da variedade $i$ no dispêndio inicial. $v^0_i$ é o dispêndio inicial em cada variedade $i$.
+onde \(\pi_i = \frac{v^0_i}{\sum_i v^0_i}\) é o share da variedade \(i\)
+no dispêndio inicial. \(v^0_i\) é o dispêndio inicial em cada variedade
+\(i\).
 
-
-```r
+``` r
 variables[["P"]] <- create_variable(
   value = 1,
   indexes = list(P = "P"),
@@ -228,12 +233,11 @@ equations[["E_P"]] <- create_equation(
 
 ### Demanda Total
 
-$$ \hat{Q} = \hat{P}^\eta $$
+\[ \hat{Q} = \hat{P}^\eta \]
 
 Inicialmente, é preciso definir as variáveis:
 
-
-```r
+``` r
 variables[["Q"]] <- create_variable(
   value = 1,
   indexes = list(Q = "Q"),
@@ -244,8 +248,7 @@ variables[["Q"]] <- create_variable(
 
 E na sequência a equação:
 
-
-```r
+``` r
 equations[["E_Q"]] <- create_equation(
   "Q = P^eta",
   type = "defining",
@@ -255,11 +258,10 @@ equations[["E_Q"]] <- create_equation(
 
 ### Oferta
 
-$$\hat{q}_i = \left(\frac{\hat{p_i}}{\hat{\tau_i}}\right)^{\epsilon_i} $$
-onde $\hat{\tau_i} = \frac{1 + \hat{t_i}}{1 + t_i}$.
+\[\hat{q}_i = \left(\frac{\hat{p_i}}{\hat{\tau_i}}\right)^{\epsilon_i} \]
+onde \(\hat{\tau_i} = \frac{1 + \hat{t_i}}{1 + t_i}\).
 
-
-```r
+``` r
 variables[["q"]] <- create_variable(
   value = 1,
   indexes = sets['REG'],
@@ -277,10 +279,9 @@ equations[["E_q"]] <- create_equation(
 
 ### Demanda por variedade
 
-$$\hat{c}_i = \left(\frac{\hat{p}_i}{\hat{P}}\right)^{-\sigma} \hat{Q}$$
+\[\hat{c}_i = \left(\frac{\hat{p}_i}{\hat{P}}\right)^{-\sigma} \hat{Q}\]
 
-
-```r
+``` r
 variables[["c"]] <- create_variable(
   value = 1,
   indexes = sets['REG'],
@@ -296,13 +297,11 @@ equations[["E_c"]] <- create_equation(
 )
 ```
 
-
 ### Equilíbrio de Mercado
 
-$$ \hat{q}_i = \hat{c}_i $$
+\[ \hat{q}_i = \hat{c}_i \]
 
-
-```r
+``` r
 variables[["p"]] <- create_variable(
   value = 1,
   indexes = sets['REG'],
@@ -320,8 +319,7 @@ equations[["E_p"]] <- create_equation(
 
 ### Objeto do Modelo
 
-
-```r
+``` r
 armington_model <- list(
   sets = sets,
   params = params,
@@ -332,13 +330,9 @@ armington_model <- list(
 sol0 <- solve_emr(armington_model)
 ```
 
-```
-## Iteration:  0  ||F(x0)||:  0
-```
+    ## Iteration:  0  ||F(x0)||:  0
 
-
-
-```r
+``` r
 armington_model$params$tau$value['reg2'] <- 1.1
 sol1 <- solve_emr(armington_model, method = "nleqslv")
 
@@ -346,11 +340,9 @@ sol1 <- solve_emr(armington_model, method = "nleqslv")
 sol1$sol$message
 ```
 
-```
-## [1] "Function criterion near zero"
-```
+    ## [1] "Function criterion near zero"
 
-```r
+``` r
 # See the results for the internal prices
 enframe(sol1$variables$p) %>% 
   ggplot(aes(x = name, y = value - 1)) +
@@ -362,5 +354,4 @@ enframe(sol1$variables$p) %>%
   )
 ```
 
-![](README_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
-
+![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
