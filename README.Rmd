@@ -69,7 +69,7 @@ Agora, vamos definir o modelo no R. Para isso, vamos escrever as equações em v
 
 Para construir o modelo, precisaremos definir os conjuntos de índices (por exemplo, o nome das regiões fornecedoras $i$), os parâmetros (acomoda parâmetros e variáveis exógenas), as variáveis e as equações.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(emr) #load the package!
 library(tidyverse)
 
