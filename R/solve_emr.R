@@ -106,10 +106,11 @@ solve_emr <- function(model, start = NULL,
   names(start) <- names_var
 
   if(method == "BB"){
-    sol <- BB::dfsane(start, model_fn,
+    sol <- BB::BBsolve(start, model_fn,
                       params = params,
                       defining_equations = defining_equations_p,
                       mcc_equations = mcc_equations_p,
+                      quiet = TRUE,
                       control = list(...)
     )
 

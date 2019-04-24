@@ -81,6 +81,24 @@ simple_armington <- function(
     desc = "shares consumption"
   )
 
+  params[["k_s"]] <- create_param(
+    value = 1,
+    indexes = sets['REG'],
+    desc = "shift in supply"
+  )
+
+  params[["alpha"]] <- create_param(
+    value = 1,
+    indexes = sets['REG'],
+    desc = "shift in demand preferences"
+  )
+
+  params[["k_d"]] <- create_param(
+    value = 1,
+    indexes = list(k_d = "k_d"),
+    desc = "shift in total demand"
+  )
+
   # Variables -------------------------------------------------
 
   variables <- list()
@@ -125,26 +143,26 @@ simple_armington <- function(
   equations <- list()
 
   equations[["e_P"]] <- create_equation(
-    "P = sum(pi * p^(1-sigma))^(1/(1-sigma))",
+    "P = sum(pi * (alpha * p)^(1-sigma))^(1/(1-sigma))",
     type = "defining",
     desc = "Price index"
   )
 
   equations[["e_Q"]] <- create_equation(
-    "Q = P^eta",
+    "Q = k_d * P^eta",
     type = "defining",
     desc = "Total demand"
   )
 
   equations[['e_q_d']] <- create_equation(
-    "q_d[r] = (p[r]/P)^(-sigma) * Q",
+    "q_d[r] = alpha[r]^(1-sigma) *( p[r]/P)^(-sigma) * Q",
     indexes = 'r in REG',
     type = "defining",
     desc = "Demand for each region product"
   )
 
   equations[['e_q_s']] <- create_equation(
-    "q_s[r] = (p[r]/tau[r])^eps[r]",
+    "q_s[r] = k_s[r] * (p[r]/tau[r])^eps[r]",
     indexes = "r in REG",
     type = "defining",
     desc = "Supply by region"

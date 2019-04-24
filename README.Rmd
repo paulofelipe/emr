@@ -6,6 +6,8 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+
 ## emr - Economic Models in R
 
 Esta pacote tem o objetivo de possibilitar a definição e a execução de simulações de modelos de equilíbrio parcial e geral. A ideia é ser algo similar ao GAMS e GEMPACK.
