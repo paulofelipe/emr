@@ -31,7 +31,7 @@
 solve_emr <- function(model, start = NULL,
                       method = "BB", ...){
 
-  method <- match.arg(method, c("BB", "nleqslv"))
+  method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
 
   sets <- model$sets
   params <- model$params
@@ -44,7 +44,7 @@ solve_emr <- function(model, start = NULL,
     sapply(variables, function(x) x$type == "undefined")
     ]
   v <- lapply(undefined_variables, function(x) x[["value"]])
-  idx <- sapply(v, length)
+  idx <- sapply(v, function(x) length(c(x)))
 
   defined_variables <- variables[
     sapply(variables, function(x) x$type == "defined")
@@ -81,7 +81,7 @@ solve_emr <- function(model, start = NULL,
 
     idx_0 <- 1
     for(i in 1:length(v)){
-      v[[i]] <- start[idx_0:(idx_0 + idx[i] - 1)]
+      v[[i]][] <- start[idx_0:(idx_0 + idx[i] - 1)]
       idx_0 <- idx_0 + idx[i]
     }
 
@@ -92,7 +92,6 @@ solve_emr <- function(model, start = NULL,
 
     r <- lapply(mcc_equations_p, eval, envir = env_model)
     r <- unlist(r)
-
     r
 
   }
@@ -128,9 +127,22 @@ solve_emr <- function(model, start = NULL,
     start <- sol$x
   }
 
+  if(method == "rootSolve"){
+    sol <- rootSolve::multiroot(model_fn, start,
+                                params = params,
+                                verbose = TRUE,
+                                defining_equations = defining_equations_p,
+                                mcc_equations = mcc_equations_p)
+    start <- sol$root
+  }
+
+  x <- lapply(defining_equations_p, eval, envir = env_model)
+
+  #r <- lapply(mcc_equations_p, eval, envir = env_model)
+
   idx_0 <- 1
   for(i in 1:length(v)){
-    v[[i]] <- start[idx_0:(idx_0 + idx[i] - 1)]
+    v[[i]][] <- start[idx_0:(idx_0 + idx[i] - 1)]
     idx_0 <- idx_0 + idx[i]
   }
 

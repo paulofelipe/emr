@@ -24,9 +24,15 @@ create_variable <- function(value = 1, indexes, type = c("defined", "undefined")
 
   type <- match.arg(type, c("defined", "undefined"))
 
+  if(is.data.frame(value)){
+    value <- df_to_array(value, indexes)
+  } else{
+    value <- create_array(value = value,
+                          indexes = indexes)
+  }
+
   list(
-    value = create_array(value = value,
-                         indexes = indexes),
+    value = value,
     type = type,
     desc = desc
   )

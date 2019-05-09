@@ -8,6 +8,7 @@
 #' @param v0 a vector with the initial demand values.
 #' @param eps a vector with supply elasticities.
 #' @param eta the total demand price elasticity.
+#' @param t a vector with the tariff initial values
 #' @param sigma the armington elasticity.
 #' @param regions a vector with the regions names.
 #'
@@ -30,6 +31,7 @@ simple_armington <- function(
   v0, # initial values
   eps, # supply elasticities
   eta, # total demand elasticity
+  t, # tariffs
   sigma, # armington elastiticy
   regions # regions names vector
 ){
@@ -76,7 +78,7 @@ simple_armington <- function(
   )
 
   params[["pi"]] <- create_param(
-    value = params$v0$value/sum(params$v0$value),
+    value = (params$v0$value * (1+t))/sum(params$v0$value * (1+t)),
     indexes = sets['REG'],
     desc = "shares consumption"
   )
