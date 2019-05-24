@@ -28,10 +28,10 @@
 #'
 #'sol$variables
 
-solve_emr <- function(model, start = NULL,
-                      method = "BB", ...){
+solve_emr_block <- function(model, scale_alpha = 1, triter = 100, trace = FALSE,
+                            maxit = 1e5, tol = 1e-7){
 
-  method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
+  #method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
 
   sets <- model$sets
   params <- model$params
@@ -76,79 +76,77 @@ solve_emr <- function(model, start = NULL,
                             envir = env_model)
 
 
-  model_fn <- function(start, params, defining_equations,
-                       mcc_equations){
+  F <- list()
+  F_old <- list()
+  v_old <- list()
 
-    idx_0 <- 1
-    for(i in 1:length(v)){
-      v[[i]][] <- start[idx_0:(idx_0 + idx[i] - 1)]
-      idx_0 <- idx_0 + idx[i]
-    }
+  for(i in names(v)){
+    F[[i]] <- rep(0, length(c(v[[i]])))
+    F_old[[i]] <- rep(0, length(c(v[[i]])))
+    v_old[[i]] <- v[[i]]
+  }
 
-    for(i in names(v))
-      assign(i, v[[i]], envir = env_model)
+  eps <- 1e-10
+
+  residuals <- rep(0, length(v))
+
+  for(iter in 0:maxit){
 
     x <- lapply(defining_equations_p, eval, envir = env_model)
 
-    r <- lapply(mcc_equations_p, eval, envir = env_model)
-    r <- unlist(r)
-    r
+    for(i in 1:length(v)){
+
+      name <- names(v)[i]
+      F[[name]] <- unlist(lapply(mcc_equations_p[i], eval, envir = env_model))
+
+      normF <- sqrt(sum(F[[name]]^2))
+
+      if (iter == 0) {
+        alpha <- min(1/normF, 1)
+      }
+
+      # if(iter > 0){
+      #
+      #   s <- v[[name]] - v_old[[name]]
+      #   y <- F[[name]] - F_old[[name]]
+      #   alpha <- sum(s*y)/sum(y*y)
+      #
+      #   if (is.nan(alpha))
+      #     alpha <- eps
+      #
+      #   if ((abs(alpha) <= eps) | (abs(alpha) >= 1/eps))
+      #     alpha <- if (normF > 1)
+      #       1
+      #   else if (normF >= 1e-05 & normF <= 1)
+      #     1/normF
+      #   else if (normF < 1e-05)
+      #     1e+05
+      # }
+
+      if(iter > 0) alpha <- scale_alpha[i]
+
+      res <- normF/sqrt(sum(c(v[[name]])^2))
+      residuals[i] <- res
+
+      if(iter%%triter == 0 & trace == TRUE)
+        cat("Iteration: ", iter, " ",name,
+            " ||F(x)||: ", res, "\n")
+      v_old[[name]] <- v[[name]]
+      v[[name]][] <- c(v[[name]]) + alpha * (-F[[name]])
+      F_old[[name]] <- c(F[[name]])
+
+    }
+
+    for(name in names(v)){
+      assign(name, v[[name]], envir = env_model)
+    }
+
+    max_F <- max(residuals)
+
+    if(max_F < tol) break
 
   }
 
-  if(is.null(start)){
-    start <- lapply(undefined_variables, function(x) x[[1]])
-    start <- unlist(start)
-  }
-
-  names_var <- stringr::str_extract(names(start), "[^\\.]+$")
-  names(start) <- names_var
-
-  if(method == "BB"){
-    sol <- BB::BBsolve(start, model_fn,
-                       params = params,
-                       defining_equations = defining_equations_p,
-                       mcc_equations = mcc_equations_p,
-                       quiet = TRUE,
-                       method = c(3,2,1),
-                       control = list(...)
-    )
-
-    start <- sol$par
-    names(start) <- names_var
-  }
-
-  if(method == "nleqslv"){
-    sol <- nleqslv::nleqslv(start, model_fn,
-                            params = params,
-                            defining_equations = defining_equations_p,
-                            mcc_equations = mcc_equations_p,
-                            control = list(...))
-
-    start <- sol$x
-  }
-
-  if(method == "rootSolve"){
-    sol <- rootSolve::multiroot(model_fn, start,
-                                params = params,
-                                verbose = TRUE,
-                                defining_equations = defining_equations_p,
-                                mcc_equations = mcc_equations_p)
-    start <- sol$root
-  }
-
-  x <- lapply(defining_equations_p, eval, envir = env_model)
-
-  #r <- lapply(mcc_equations_p, eval, envir = env_model)
-
-  idx_0 <- 1
-  for(i in 1:length(v)){
-    v[[i]][] <- start[idx_0:(idx_0 + idx[i] - 1)]
-    idx_0 <- idx_0 + idx[i]
-  }
-
-  for(i in names(v))
-    assign(i, v[[i]], envir = env_model)
 
   for(i in names(defined_variables)){
     if(is.vector(defined_variables[[i]][["value"]])){
@@ -193,8 +191,7 @@ solve_emr <- function(model, start = NULL,
     description = sapply(params, function(x) x$desc)
   )
 
-  return(list(sol = sol,
-              params = results$params,
+  return(list(params = results$params,
               variables = results$variables,
               updated_data = updated_data,
               variables_descriptions = variables_descriptions,

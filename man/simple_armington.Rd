@@ -4,7 +4,7 @@
 \alias{simple_armington}
 \title{Create a simple armington model}
 \usage{
-simple_armington(v0, eps, eta, sigma, regions)
+simple_armington(v0, eps, eta, t, sigma, regions)
 }
 \arguments{
 \item{v0}{a vector with the initial demand values.}
@@ -12,6 +12,8 @@ simple_armington(v0, eps, eta, sigma, regions)
 \item{eps}{a vector with supply elasticities.}
 
 \item{eta}{the total demand price elasticity.}
+
+\item{t}{a vector with the tariff initial values}
 
 \item{sigma}{the armington elasticity.}
 
