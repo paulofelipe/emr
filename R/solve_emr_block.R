@@ -28,7 +28,7 @@
 #'
 #'sol$variables
 
-solve_emr_block <- function(model, scale_alpha = 1, triter = 100, trace = FALSE,
+solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FALSE,
                             maxit = 1e5, tol = 1e-7){
 
   #method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
@@ -90,6 +90,9 @@ solve_emr_block <- function(model, scale_alpha = 1, triter = 100, trace = FALSE,
 
   residuals <- rep(0, length(v))
 
+  if(is.null(scale_alpha))
+    scale_alpha <- rep(NA, length(v))
+
   for(iter in 0:maxit){
 
     x <- lapply(defining_equations_p, eval, envir = env_model)
@@ -101,29 +104,32 @@ solve_emr_block <- function(model, scale_alpha = 1, triter = 100, trace = FALSE,
 
       normF <- sqrt(sum(F[[name]]^2))
 
-      if (iter == 0) {
-        alpha <- min(1/normF, 1)
+      if (iter == 0 & is.na(scale_alpha[i])) {
+        alpha <-  min(1/(normF/sqrt(sum(c(v[[name]])^2))), 1e-4)
       }
 
-      # if(iter > 0){
-      #
-      #   s <- v[[name]] - v_old[[name]]
-      #   y <- F[[name]] - F_old[[name]]
-      #   alpha <- sum(s*y)/sum(y*y)
-      #
-      #   if (is.nan(alpha))
-      #     alpha <- eps
-      #
-      #   if ((abs(alpha) <= eps) | (abs(alpha) >= 1/eps))
-      #     alpha <- if (normF > 1)
-      #       1
-      #   else if (normF >= 1e-05 & normF <= 1)
-      #     1/normF
-      #   else if (normF < 1e-05)
-      #     1e+05
-      # }
+      if(is.na(scale_alpha[i]) & iter > 0){
 
-      if(iter > 0) alpha <- scale_alpha[i]
+        s <- v[[name]] - v_old[[name]]
+        y <- F[[name]] - F_old[[name]]
+        alpha <- abs(sum(s*y)/sum(y*y))
+
+        if (is.nan(alpha))
+          alpha <- eps
+
+        if ((abs(alpha) <= eps) | (abs(alpha) >= 1/eps))
+          alpha <- if (normF > 1)
+            1
+        else if (normF >= 1e-05 & normF <= 1)
+          1/normF
+        else if (normF < 1e-05)
+          1e+05
+
+        alpha <- pmin(alpha, 0.1)
+
+      }
+
+      if(!is.na(scale_alpha[i])) alpha <- scale_alpha[i]
 
       res <- normF/sqrt(sum(c(v[[name]])^2))
       residuals[i] <- res
