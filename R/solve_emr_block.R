@@ -112,7 +112,7 @@ solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FAL
 
         s <- v[[name]] - v_old[[name]]
         y <- F[[name]] - F_old[[name]]
-        alpha <- abs(sum(s*y)/sum(y*y))
+        alpha <- sum(s*y)/sum(y*y)
 
         if (is.nan(alpha))
           alpha <- eps
@@ -124,8 +124,6 @@ solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FAL
           1/normF
         else if (normF < 1e-05)
           1e+05
-
-        alpha <- pmin(alpha, 0.1)
 
       }
 
