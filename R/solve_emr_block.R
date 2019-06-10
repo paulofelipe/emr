@@ -29,6 +29,7 @@
 #'sol$variables
 
 solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FALSE,
+                            alpha_min = 0.1, alpha_max = 0.5,
                             maxit = 1e5, tol = 1e-7){
 
   #method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
@@ -112,7 +113,7 @@ solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FAL
 
         s <- v[[name]] - v_old[[name]]
         y <- F[[name]] - F_old[[name]]
-        alpha <- sum(s*y)/sum(y*y)
+        alpha <- sum(s*s)/sum(s*y)
 
         if (is.nan(alpha))
           alpha <- eps
@@ -125,6 +126,26 @@ solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FAL
         else if (normF < 1e-05)
           1e+05
 
+        if(abs(alpha) > alpha_max) alpha <- alpha_max
+        if(abs(alpha) < alpha_min) alpha <- alpha_min
+
+        v0 <- v1 <- v2 <- v[[name]]
+        v1[] <- c(v[[name]]) + alpha * (-F[[name]])
+        v2[] <- c(v[[name]]) - alpha * (-F[[name]])
+
+        assign(name, v1, envir = env_model)
+        #x <- lapply(defining_equations_p, eval, envir = env_model)
+        F1 <- unlist(lapply(mcc_equations_p[i], eval, envir = env_model))
+
+        assign(name, v2, envir = env_model)
+        #x <- lapply(defining_equations_p, eval, envir = env_model)
+        F2 <- unlist(lapply(mcc_equations_p[i], eval, envir = env_model))
+
+        if(sqrt(sum(F1^2)) > sqrt(sum(F2^2))) alpha <- -alpha
+
+        assign(name, v[[name]], envir = env_model)
+        #x <- lapply(defining_equations_p, eval, envir = env_model)
+
       }
 
       if(!is.na(scale_alpha[i])) alpha <- scale_alpha[i]
@@ -135,6 +156,7 @@ solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FAL
       if(iter%%triter == 0 & trace == TRUE)
         cat("Iteration: ", iter, " ",name,
             " ||F(x)||: ", res, "\n")
+
       v_old[[name]] <- v[[name]]
       v[[name]][] <- c(v[[name]]) + alpha * (-F[[name]])
       F_old[[name]] <- c(F[[name]])
