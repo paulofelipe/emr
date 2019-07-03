@@ -1,9 +1,14 @@
 #' Solve the model
 #'
 #' @param model a named list with params, variables and equations.
-#' @param start a vector with start values for undefined variables. If NULL, the currente value will be used.
-#' @param method the solver to be used: BB or nleqslv
-#' @param ... the other arguments to be passed into the solver control argument.
+#' @param scale_alpha a vector of size 1 or the same number of mcc equations.
+#' The values should be between 0 and 1 and will be used as steplength for updating each undefined variable.
+#' @param alpha_min a number between 0 and 1 that will be the floor of internally computed steplength if scale_alpha is not provided.
+#' @param alpha_max a number between 0 and 1 that will be the ceiling of internally computed steplength if scale_alpha is not provided.
+#' @param triter an integer indicating the frequency that the results for convergence will be displayed.
+#' @param trace an boolean indicating if convergence numbers should be displayed.
+#' @param maxit an integer indicating the maximum number of iterations.
+#' @param tol a number indicating the convergence tolerance.
 #'
 #'
 #' @return Returns data and information about the model and its solution
@@ -13,14 +18,15 @@
 #'library(emr)
 #'
 #'sa_model <- simple_armington(
-#' v0 = c(60, 30, 10),
-#' eps = c(1, 10, 10),
-#' eta = -1,
-#' sigma = 4,
-#' regions = c("dom", "sub", "nsub")
+#'   v0 = c(60, 30, 10),
+#'   eps = c(1, 10, 10),
+#'   eta = -1,
+#'   sigma = 4,
+#'   regions = c("dom", "sub", "nsub"),
+#'   t = c(0, 0, 0)
 #')
 #'
-#'# tau is the power tariff change
+#'# tau is the change of the tariff power
 #'# Increase the tariff in 10 percent for the sub region
 #'sa_model$params$tau$value['sub'] <- 1.1
 #'
@@ -28,8 +34,9 @@
 #'
 #'sol$variables
 
-solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FALSE,
+solve_emr_block <- function(model, scale_alpha = NULL,
                             alpha_min = 0.1, alpha_max = 0.5,
+                            triter = 100, trace = FALSE,
                             maxit = 1e5, tol = 1e-7){
 
   #method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
@@ -150,7 +157,10 @@ solve_emr_block <- function(model, scale_alpha = NULL, triter = 100, trace = FAL
 
       if(!is.na(scale_alpha[i])) alpha <- scale_alpha[i]
 
-      res <- normF/sqrt(sum(c(v[[name]])^2))
+      scale_norm <- if(max(abs(c(v[[name]]))) > 100) max(abs(c(v[[name]]))) else 1
+
+      normF <- sqrt(sum((F[[name]]/scale_norm)^2))
+      res <- normF/sqrt(length(c(v[[name]])))#/sqrt(sum(c(v[[name]])^2))
       residuals[i] <- res
 
       if(iter%%triter == 0 & trace == TRUE)

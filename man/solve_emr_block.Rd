@@ -4,16 +4,27 @@
 \alias{solve_emr_block}
 \title{Solve the model}
 \usage{
-solve_emr_block(model, start = NULL, ...)
+solve_emr_block(model, scale_alpha = NULL, alpha_min = 0.1,
+  alpha_max = 0.5, triter = 100, trace = FALSE, maxit = 1e+05,
+  tol = 1e-07)
 }
 \arguments{
 \item{model}{a named list with params, variables and equations.}
 
-\item{start}{a vector with start values for undefined variables. If NULL, the currente value will be used.}
+\item{scale_alpha}{a vector of size 1 or the same number of mcc equations.
+The values should be between 0 and 1 and will be used as steplength for updating each undefined variable.}
 
-\item{...}{the other arguments to be passed into the solver control argument.}
+\item{alpha_min}{a number between 0 and 1 that will be the floor of internally computed steplength if scale_alpha is not provided.}
 
-\item{method}{the solver to be used: BB or nleqslv}
+\item{alpha_max}{a number between 0 and 1 that will be the ceiling of internally computed steplength if scale_alpha is not provided.}
+
+\item{triter}{an integer indicating the frequency that the results for convergence will be displayed.}
+
+\item{trace}{an boolean indicating if convergence numbers should be displayed.}
+
+\item{maxit}{an integer indicating the maximum number of iterations.}
+
+\item{tol}{a number indicating the convergence tolerance.}
 }
 \value{
 Returns data and information about the model and its solution
@@ -26,14 +37,15 @@ Solve the model
 library(emr)
 
 sa_model <- simple_armington(
-v0 = c(60, 30, 10),
-eps = c(1, 10, 10),
-eta = -1,
-sigma = 4,
-regions = c("dom", "sub", "nsub")
+  v0 = c(60, 30, 10),
+  eps = c(1, 10, 10),
+  eta = -1,
+  sigma = 4,
+  regions = c("dom", "sub", "nsub"),
+  t = c(0, 0, 0)
 )
 
-# tau is the power tariff change
+# tau is the change of the tariff power
 # Increase the tariff in 10 percent for the sub region
 sa_model$params$tau$value['sub'] <- 1.1
 

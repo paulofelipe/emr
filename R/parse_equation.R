@@ -21,10 +21,12 @@ parse_equation <- function(equation, envir){
 
   eq <- equation$equation
   sets <- equation$indexes
+  type <- equation$type
 
   if(is.null(sets)){
     new_eq <- eq
   }
+
 
   if(!is.null(sets)){
     sets_names <- strsplit(sets, " in ")
@@ -43,7 +45,7 @@ parse_equation <- function(equation, envir){
     curly_braces <-  rep("}", length(sets))
     curly_braces <- glue_collapse(curly_braces, "")
 
-    if(grepl("=", eq)){
+    if(type == "defining"){
       new_eq <- glue('for({sets}){{')
       new_eq <- glue_collapse(new_eq, sep = " \n ")
       new_eq <- glue('{text_for} {eq} {curly_braces}',
@@ -68,6 +70,7 @@ parse_equation <- function(equation, envir){
       )
     }
   }
+
   return(parse(text = new_eq))
 }
 

@@ -24,6 +24,12 @@ create_variable <- function(value = 1, indexes, type = c("defined", "undefined")
 
   type <- match.arg(type, c("defined", "undefined"))
 
+  if(typeof(indexes) == "character" & length(indexes) == 1){
+    name_index <- indexes
+    indexes <- list(indexes)
+    names(indexes) <- name_index
+  }
+
   if(is.data.frame(value)){
     value <- df_to_array(value, indexes)
   } else{

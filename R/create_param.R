@@ -20,6 +20,12 @@
 
 create_param <- function(value = 1, indexes, desc){
 
+  if(typeof(indexes) == "character" & length(indexes) == 1){
+    name_index <- indexes
+    indexes <- list(indexes)
+    names(indexes) <- name_index
+  }
+
   if(is.data.frame(value)){
     value <- df_to_array(value, indexes)
   } else{
