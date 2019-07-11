@@ -133,8 +133,8 @@ solve_emr_block <- function(model, scale_alpha = NULL,
         else if (normF < 1e-05)
           1e+05
 
-        if(abs(alpha) > alpha_max) alpha <- alpha_max
-        if(abs(alpha) < alpha_min) alpha <- alpha_min
+        if(abs(alpha) > alpha_max) alpha <- alpha_max * sign(alpha)
+        if(abs(alpha) < alpha_min) alpha <- alpha_min * sign(alpha)
 
         v0 <- v1 <- v2 <- v[[name]]
         v1[] <- c(v[[name]]) + alpha * (-F[[name]])
@@ -182,6 +182,8 @@ solve_emr_block <- function(model, scale_alpha = NULL,
     if(max_F < tol) break
 
   }
+  message <- "Unsuccessful convergence"
+  if(max_F < tol) message <- "Successful convergence"
 
 
   for(i in names(defined_variables)){
@@ -231,6 +233,7 @@ solve_emr_block <- function(model, scale_alpha = NULL,
               variables = results$variables,
               updated_data = updated_data,
               variables_descriptions = variables_descriptions,
-              params_descriptions = params_descriptions))
+              params_descriptions = params_descriptions,
+              message = message))
 
 }
