@@ -31,7 +31,7 @@
 solve_emr <- function(model, start = NULL,
                       method = "BB", ...){
 
-  method <- match.arg(method, c("BB", "nleqslv", "rootSolve"))
+  method <- match.arg(method, c("BB", "nleqslv", "rootSolve", "dfsane"))
 
   sets <- model$sets
   params <- model$params
@@ -111,6 +111,19 @@ solve_emr <- function(model, start = NULL,
                        mcc_equations = mcc_equations_p,
                        quiet = TRUE,
                        method = c(3,2,1),
+                       control = list(...)
+    )
+
+    start <- sol$par
+    names(start) <- names_var
+  }
+
+  if(method == "dfsane"){
+    sol <- BB::dfsane(start, model_fn,
+                       params = params,
+                       defining_equations = defining_equations_p,
+                       mcc_equations = mcc_equations_p,
+                       quiet = TRUE,
                        control = list(...)
     )
 

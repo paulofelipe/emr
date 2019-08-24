@@ -23,9 +23,24 @@ parse_equation <- function(equation, envir){
   sets <- equation$indexes
   type <- equation$type
 
+  eq <- gsub("\\\n", "", eq)
+  sum_exprs <- unlist(str_extract_all(eq, "@(.*?)@"))
+
+  if(length(sum_exprs) >= 1){
+    sum_orig <- gsub("@", "", sum_exprs)
+    sum_exprs_modif <- sapply(sum_orig, function(x) parse(text = x))
+    sum_exprs_modif <- sapply(sum_exprs_modif, eval)
+
+    for(i in 1:length(sum_orig)){
+      eq <- gsub(quotemeta(sum_exprs[i]), sum_exprs_modif[i], eq)
+    }
+
+  }
+
   if(is.null(sets)){
     new_eq <- eq
   }
+
 
 
   if(!is.null(sets)){
@@ -74,3 +89,21 @@ parse_equation <- function(equation, envir){
   return(parse(text = new_eq))
 }
 
+#' @export
+
+sum_emr <- function(sum_expression, index, set){
+  #set_sum <- strsplit(index, " ")[[1]][3]
+  #index_sum <- strsplit(index, " ")[[1]][1]
+  sapply_expr <- glue::glue(
+    "sum(sapply({set}, function({x}) {sum_expression}))",
+    set = set,
+    x = index,
+    sum_expression = sum_expression
+  )
+
+  sapply_expr
+}
+
+quotemeta <- function(string) {
+  gsub("(\\W)", "\\\\\\1", string)
+}

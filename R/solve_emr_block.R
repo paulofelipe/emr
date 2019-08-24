@@ -112,8 +112,9 @@ solve_emr_block <- function(model, scale_alpha = NULL,
 
       normF <- sqrt(sum(F[[name]]^2))
 
-      if (iter == 0 & is.na(scale_alpha[i])) {
-        alpha <-  min(1/(normF/sqrt(sum(c(v[[name]])^2))), 1e-4)
+      if (iter < 100 & is.na(scale_alpha[i])) {
+        alpha <- alpha_min
+        #alpha <-  min(1/(normF/sqrt(sum(c(v[[name]])^2))), 1e-4)
       }
 
       if(is.na(scale_alpha[i]) & iter > 0){
@@ -133,8 +134,8 @@ solve_emr_block <- function(model, scale_alpha = NULL,
         else if (normF < 1e-05)
           1e+05
 
-        if(abs(alpha) > alpha_max) alpha <- alpha_max * sign(alpha)
-        if(abs(alpha) < alpha_min) alpha <- alpha_min * sign(alpha)
+        if(abs(alpha) > alpha_max) alpha <- alpha_max
+        if(abs(alpha) < alpha_min) alpha <- alpha_min
 
         v0 <- v1 <- v2 <- v[[name]]
         v1[] <- c(v[[name]]) + alpha * (-F[[name]])
@@ -182,9 +183,12 @@ solve_emr_block <- function(model, scale_alpha = NULL,
     if(max_F < tol) break
 
   }
-  message <- "Unsuccessful convergence"
-  if(max_F < tol) message <- "Successful convergence"
 
+  message <- ifelse(
+    max_F < tol,
+    "Successful Convergence",
+    "Unsuccessful Convergente"
+  )
 
   for(i in names(defined_variables)){
     if(is.vector(defined_variables[[i]][["value"]])){
@@ -234,6 +238,7 @@ solve_emr_block <- function(model, scale_alpha = NULL,
               updated_data = updated_data,
               variables_descriptions = variables_descriptions,
               params_descriptions = params_descriptions,
-              message = message))
+              message = message,
+              iteration = iter))
 
 }
