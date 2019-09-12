@@ -112,16 +112,20 @@ solve_emr_block <- function(model, scale_alpha = NULL,
 
       normF <- sqrt(sum(F[[name]]^2))
 
-      if (iter < 100 & is.na(scale_alpha[i])) {
-        alpha <- alpha_min
+      #if (iter > 1e12 & is.na(scale_alpha[i])) {
+        #alpha <- alpha_min
         #alpha <-  min(1/(normF/sqrt(sum(c(v[[name]])^2))), 1e-4)
-      }
+      #}
 
-      if(is.na(scale_alpha[i]) & iter > 0){
+      if(is.na(scale_alpha[i]) & iter >= 0){
 
         s <- v[[name]] - v_old[[name]]
         y <- F[[name]] - F_old[[name]]
         alpha <- sum(s*s)/sum(s*y)
+
+        if(iter == 0){
+          alpha <- alpha_min
+        }
 
         if (is.nan(alpha))
           alpha <- eps
@@ -132,7 +136,7 @@ solve_emr_block <- function(model, scale_alpha = NULL,
         else if (normF >= 1e-05 & normF <= 1)
           1/normF
         else if (normF < 1e-05)
-          1e+05
+          1e5
 
         if(abs(alpha) > alpha_max) alpha <- alpha_max
         if(abs(alpha) < alpha_min) alpha <- alpha_min
@@ -149,9 +153,18 @@ solve_emr_block <- function(model, scale_alpha = NULL,
         #x <- lapply(defining_equations_p, eval, envir = env_model)
         F2 <- unlist(lapply(mcc_equations_p[i], eval, envir = env_model))
 
-        if(sqrt(sum(F1^2)) > sqrt(sum(F2^2))) alpha <- -alpha
+        norm_F1 <- sqrt(sum(F1^2))
+        if(is.na(norm_F1)) norm_F1 <- 1e12
+
+        norm_F2 <- sqrt(sum(F2^2))
+        if(is.na(norm_F2)) norm_F2 <- 1e12
+
+        if(norm_F1 > norm_F2) alpha <- -alpha
+
+        if(sum(is.na(v[[name]])) > 0) v[[name]] <- v_old[[name]]
 
         assign(name, v[[name]], envir = env_model)
+
         #x <- lapply(defining_equations_p, eval, envir = env_model)
 
       }
@@ -161,12 +174,14 @@ solve_emr_block <- function(model, scale_alpha = NULL,
       scale_norm <- if(max(abs(c(v[[name]]))) > 100) max(abs(c(v[[name]]))) else 1
 
       normF <- sqrt(sum((F[[name]]/scale_norm)^2))
+      #normF <- sqrt(sum((F[[name]])^2))
       res <- normF/sqrt(length(c(v[[name]])))#/sqrt(sum(c(v[[name]])^2))
       residuals[i] <- res
 
       if(iter%%triter == 0 & trace == TRUE)
-        cat("Iteration: ", iter, " ",name,
-            " ||F(x)||: ", res, "\n")
+        cat("Iteration:", iter, "var:",name,
+            "step size:", round(alpha, 4),
+            "||F(x)||:", res, "\n")
 
       v_old[[name]] <- v[[name]]
       v[[name]][] <- c(v[[name]]) + alpha * (-F[[name]])
@@ -178,6 +193,7 @@ solve_emr_block <- function(model, scale_alpha = NULL,
       assign(name, v[[name]], envir = env_model)
     }
 
+    residuals <- ifelse(is.na(residuals), 1e6, residuals)
     max_F <- max(residuals)
 
     if(max_F < tol) break
