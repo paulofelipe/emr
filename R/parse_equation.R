@@ -24,7 +24,7 @@ parse_equation <- function(equation, envir){
   type <- equation$type
 
   eq <- gsub("\\\n", "", eq)
-  sum_exprs <- unlist(str_extract_all(eq, "@(.*?)@"))
+  sum_exprs <- unlist(stringr::str_extract_all(eq, "@(.*?)@"))
 
   if(length(sum_exprs) >= 1){
     sum_orig <- gsub("@", "", sum_exprs)

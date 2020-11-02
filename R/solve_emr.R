@@ -38,7 +38,7 @@ solve_emr <- function(model, start = NULL,
   variables <- model$variables
   equations <- model$equations
 
-  env_model <- new.env()
+  env_model <- safe_env()
 
   undefined_variables <- variables[
     sapply(variables, function(x) x$type == "undefined")

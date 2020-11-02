@@ -4,9 +4,16 @@
 \alias{solve_emr_block}
 \title{Solve the model}
 \usage{
-solve_emr_block(model, scale_alpha = NULL, alpha_min = 0.1,
-  alpha_max = 0.5, triter = 100, trace = FALSE, maxit = 1e+05,
-  tol = 1e-07)
+solve_emr_block(
+  model,
+  scale_alpha = NULL,
+  alpha_min = 0.1,
+  alpha_max = 0.5,
+  triter = 100,
+  trace = FALSE,
+  maxit = 1e+05,
+  tol = 1e-07
+)
 }
 \arguments{
 \item{model}{a named list with params, variables and equations.}

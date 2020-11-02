@@ -21,6 +21,7 @@
 #'sa_model <- simple_armington(
 #'  v0 = c(60, 30, 10),
 #'  eps = c(1, 10, 10),
+#'  t = c(0, 0, 0),
 #'  eta = -1,
 #'  sigma = 4,
 #'  regions = c("dom", "sub", "nsub")

@@ -4,8 +4,7 @@
 \alias{create_variable}
 \title{Create a variable}
 \usage{
-create_variable(value = 1, indexes, type = c("defined", "undefined"),
-  desc)
+create_variable(value = 1, indexes, type = c("defined", "undefined"), desc)
 }
 \arguments{
 \item{value}{a numeric vector with the value(s) to fill the array.}

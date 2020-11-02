@@ -4,8 +4,7 @@
 \alias{create_equation}
 \title{Create a model equation}
 \usage{
-create_equation(equation, indexes = NULL, type = c("defining", "mcc"),
-  desc)
+create_equation(equation, indexes = NULL, type = c("defining", "mcc"), desc)
 }
 \arguments{
 \item{equation}{a string with the equation expression.}
