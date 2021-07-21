@@ -78,7 +78,7 @@ parse_equation <- function(equation, envir){
 
       new_eq <- glue('for({sets}){{')
       new_eq <- glue_collapse(new_eq, sep = " \n ")
-      new_eq <- glue('{text_for} {res_name}[{index}] <- {eq} {curly_braces}; c({res_name})',
+      new_eq <- glue('{text_for} {res_name}[{index}] <- {eq} {curly_braces}; concatenate_function({res_name})',
                      text_for = new_eq,
                      curly_braces = curly_braces,
                      res_name = res_name
